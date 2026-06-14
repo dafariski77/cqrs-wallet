@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/my-wallet-be/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/my-wallet-be/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/my-wallet-be",
+  "projects": {
+    "analytics-service": {
+      "type": "application",
+      "root": "apps/analytics-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/analytics-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/analytics-service/tsconfig.app.json"
+      }
+    },
+    "gateway": {
+      "type": "application",
+      "root": "apps/gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/gateway/tsconfig.app.json"
+      }
+    },
+    "indexer-service": {
+      "type": "application",
+      "root": "apps/indexer-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/indexer-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/indexer-service/tsconfig.app.json"
+      }
+    },
+    "my-wallet-be": {
+      "type": "application",
+      "root": "apps/my-wallet-be",
+      "entryFile": "main",
+      "sourceRoot": "apps/my-wallet-be/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/my-wallet-be/tsconfig.app.json"
+      }
+    },
+    "user-wallet-service": {
+      "type": "application",
+      "root": "apps/user-wallet-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/user-wallet-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/user-wallet-service/tsconfig.app.json"
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    }
+  }
+}

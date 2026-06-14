@@ -1,0 +1,83 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ChainType {
+  ETHEREUM
+  POLYGON
+  SOLANA
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCING
+  COMPLETED
+  FAILED
+}
+
+enum TransactionStatus {
+  SUCCESS
+  FAILED
+}
+
+enum TransferDirection {
+  IN
+  OUT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  wallets   Wallet[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Wallet {
+  id           String        @id @default(uuid())
+  userId       String        @map("user_id")
+  address      String
+  chainType    ChainType     @map("chain_type")
+  syncStatus   SyncStatus    @default(PENDING) @map("sync_status")
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  @@unique([userId, address])
+  @@map("wallets")
+}
+
+model Transaction {
+  id             String            @id @default(uuid())
+  walletId       String            @map("wallet_id")
+  signature      String            @unique
+  blockTime      DateTime          @map("block_time")
+  fee            Decimal
+  status         TransactionStatus
+  type           String            @default("OTHER")
+  wallet         Wallet            @relation(fields: [walletId], references: [id])
+  tokenTransfers TokenTransfer[]
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  @@map("transactions")
+}
+
+model TokenTransfer {
+  id          String            @id @default(uuid())
+  txId        String            @map("tx_id")
+  tokenMint   String            @map("token_mint")
+  symbol      String            @default("")
+  amount      BigInt
+  direction   TransferDirection
+  transaction Transaction       @relation(fields: [txId], references: [id])
+
+  @@map("token_transfers")
+}
