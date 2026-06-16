@@ -10,6 +10,7 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   mongodb:
     image: mongo:6.0
@@ -18,6 +19,7 @@ services:
       - '27017:27017'
     volumes:
       - mongodb_data:/data/db
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -26,6 +28,7 @@ services:
       - '6379:6379'
     volumes:
       - redis_data:/data
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -35,6 +38,7 @@ services:
       - '15672:15672'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
 
   gateway:
     build: .
@@ -46,6 +50,7 @@ services:
     depends_on:
       - user-wallet-service
       - analytics-service
+    restart: unless-stopped
 
   user-wallet-service:
     build: .
@@ -57,6 +62,7 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+    restart: unless-stopped
 
   indexer-service:
     build: .
@@ -66,6 +72,7 @@ services:
     depends_on:
       - redis
       - rabbitmq
+    restart: unless-stopped
 
   analytics-service:
     build: .
@@ -77,6 +84,7 @@ services:
     depends_on:
       - mongodb
       - rabbitmq
+    restart: unless-stopped
 
 volumes:
   postgres_data:

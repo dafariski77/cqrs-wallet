@@ -46,9 +46,14 @@ COPY --from=builder /usr/src/app/dist ./dist
 
 # Create a start script to launch the specific app
 RUN echo '#!/bin/sh' > /usr/src/app/start.sh && \
+    echo 'set -e' >> /usr/src/app/start.sh && \
     echo 'if [ -z "$APP_NAME" ]; then echo "APP_NAME is not set"; exit 1; fi' >> /usr/src/app/start.sh && \
     echo 'if [ "$APP_NAME" = "user-wallet-service" ] && [ "$RUN_MIGRATIONS" = "true" ]; then' >> /usr/src/app/start.sh && \
-    echo '  echo "Running Prisma Migrations..."' >> /usr/src/app/start.sh && \
+    echo '  echo "Waiting for postgres to be ready..."' >> /usr/src/app/start.sh && \
+    echo '  until nc -z postgres 5432; do' >> /usr/src/app/start.sh && \
+    echo '    sleep 1' >> /usr/src/app/start.sh && \
+    echo '  done' >> /usr/src/app/start.sh && \
+    echo '  echo "Postgres is ready! Running Prisma Migrations..."' >> /usr/src/app/start.sh && \
     echo '  npx prisma migrate deploy --schema=./apps/user-wallet-service/prisma/schema.prisma' >> /usr/src/app/start.sh && \
     echo 'fi' >> /usr/src/app/start.sh && \
     echo 'echo "Starting $APP_NAME..."' >> /usr/src/app/start.sh && \
