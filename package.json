@@ -27,6 +27,8 @@
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
+    "@emnapi/core": "1.11.1",
+    "@emnapi/runtime": "1.11.1",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
