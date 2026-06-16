@@ -43,3 +43,60 @@ volumes:
   mongodb_data:
   redis_data:
   rabbitmq_data:
+
+  gateway:
+    build: .
+    container_name: my-wallet-gateway
+    environment:
+      - APP_NAME=gateway
+      - USER_WALLET_SERVICE_HOST=user-wallet-service
+      - USER_WALLET_SERVICE_PORT=3001
+      - ANALYTICS_SERVICE_HOST=analytics-service
+      - ANALYTICS_SERVICE_PORT=3002
+      - GATEWAY_PORT=3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - user-wallet-service
+      - analytics-service
+
+  user-wallet-service:
+    build: .
+    container_name: my-wallet-user-wallet-service
+    environment:
+      - APP_NAME=user-wallet-service
+      - RUN_MIGRATIONS=true
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/wallet_db?schema=public
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - USER_WALLET_SERVICE_PORT=3001
+    ports:
+      - '3001:3001'
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  indexer-service:
+    build: .
+    container_name: my-wallet-indexer-service
+    environment:
+      - APP_NAME=indexer-service
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+      - rabbitmq
+
+  analytics-service:
+    build: .
+    container_name: my-wallet-analytics-service
+    environment:
+      - APP_NAME=analytics-service
+      - MONGODB_URI=mongodb://mongodb:27017/wallet_analytics
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - ANALYTICS_SERVICE_PORT=3002
+    ports:
+      - '3002:3002'
+    depends_on:
+      - mongodb
+      - rabbitmq
