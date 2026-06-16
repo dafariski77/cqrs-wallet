@@ -3,11 +3,9 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: my-wallet-postgres
-    environment:
-      POSTGRES_DB: wallet_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    container_name: coinsight-postgres
+    env_file:
+      - .env
     ports:
       - '5432:5432'
     volumes:
@@ -15,7 +13,7 @@ services:
 
   mongodb:
     image: mongo:6.0
-    container_name: my-wallet-mongodb
+    container_name: coinsight-mongodb
     ports:
       - '27017:27017'
     volumes:
@@ -23,7 +21,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: my-wallet-redis
+    container_name: coinsight-redis
     ports:
       - '6379:6379'
     volumes:
@@ -31,72 +29,57 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: my-wallet-rabbitmq
+    container_name: coinsight-rabbitmq
     ports:
       - '5672:5672'
       - '15672:15672'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-volumes:
-  postgres_data:
-  mongodb_data:
-  redis_data:
-  rabbitmq_data:
-
   gateway:
     build: .
-    container_name: my-wallet-gateway
-    environment:
-      - APP_NAME=gateway
-      - USER_WALLET_SERVICE_HOST=user-wallet-service
-      - USER_WALLET_SERVICE_PORT=3001
-      - ANALYTICS_SERVICE_HOST=analytics-service
-      - ANALYTICS_SERVICE_PORT=3002
-      - GATEWAY_PORT=3000
+    container_name: coinsight-gateway
+    env_file:
+      - apps/gateway/.env
     ports:
-      - '3000:3000'
+      - '3005:3005'
     depends_on:
       - user-wallet-service
       - analytics-service
 
   user-wallet-service:
     build: .
-    container_name: my-wallet-user-wallet-service
-    environment:
-      - APP_NAME=user-wallet-service
-      - RUN_MIGRATIONS=true
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/wallet_db?schema=public
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - USER_WALLET_SERVICE_PORT=3001
+    container_name: coinsight-user-wallet-service
+    env_file:
+      - apps/user-wallet-service/.env
     ports:
-      - '3001:3001'
+      - '3006:3006'
     depends_on:
       - postgres
       - rabbitmq
 
   indexer-service:
     build: .
-    container_name: my-wallet-indexer-service
-    environment:
-      - APP_NAME=indexer-service
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+    container_name: coinsight-indexer-service
+    env_file:
+      - apps/indexer-service/.env
     depends_on:
       - redis
       - rabbitmq
 
   analytics-service:
     build: .
-    container_name: my-wallet-analytics-service
-    environment:
-      - APP_NAME=analytics-service
-      - MONGODB_URI=mongodb://mongodb:27017/wallet_analytics
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - ANALYTICS_SERVICE_PORT=3002
+    container_name: coinsight-analytics-service
+    env_file:
+      - apps/analytics-service/.env
     ports:
-      - '3002:3002'
+      - '3007:3007'
     depends_on:
       - mongodb
       - rabbitmq
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:

@@ -63,74 +63,75 @@ export class SyncProcessor extends WorkerHost {
     }
   }
 
-  /**
-   * Fetch transactions from the blockchain.
-   * This is a MOCK implementation returning simulated data.
-   * Replace with actual Etherscan API, Alchemy, or ethers.js provider calls.
-   */
   private async fetchTransactions(
     address: string,
     chainType: string,
   ): Promise<RawTransaction[]> {
-    this.logger.log(
-      `Fetching mock transactions for ${address} on ${chainType}`,
-    );
+    this.logger.log(`Fetching live native balance for ${address} on ${chainType}`);
+    
+    let nativeBalance = 0;
+    let symbol = '';
+    let mint = '';
+    let decimals = 18;
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      if (chainType === 'ETHEREUM' || chainType === 'POLYGON') {
+        const { createPublicClient, http, formatEther } = await import('viem');
+        
+        let rpcUrl = '';
+        if (chainType === 'ETHEREUM') {
+          rpcUrl = process.env.ETH_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+          symbol = 'ETH';
+          mint = '0x0000000000000000000000000000000000000000'; // Native ETH representation
+        } else {
+          rpcUrl = process.env.POLYGON_RPC_URL || 'https://polygon-amoy-rpc.publicnode.com';
+          symbol = 'MATIC';
+          mint = '0x0000000000000000000000000000000000000000'; // Native MATIC representation
+        }
+
+        const client = createPublicClient({ transport: http(rpcUrl) });
+        const balanceBigInt = await client.getBalance({ address: address as `0x${string}` });
+        nativeBalance = Number(formatEther(balanceBigInt));
+        
+      } else if (chainType === 'SOLANA') {
+        const { Connection, PublicKey, LAMPORTS_PER_SOL } = await import('@solana/web3.js');
+        
+        const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+        symbol = 'SOL';
+        mint = 'So11111111111111111111111111111111111111112'; // Native SOL mint
+        decimals = 9;
+        
+        const connection = new Connection(rpcUrl, 'confirmed');
+        const pubKey = new PublicKey(address);
+        const balance = await connection.getBalance(pubKey);
+        nativeBalance = balance / LAMPORTS_PER_SOL;
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to fetch live balance, using 0 fallback: ${err.message}`);
+    }
 
     const now = Math.floor(Date.now() / 1000);
 
-    const mockTokenTransferIn: RawTokenTransfer = {
-      tokenMint:
-        chainType === 'SOLANA'
-          ? 'So11111111111111111111111111111111111111112'
-          : '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      symbol: chainType === 'SOLANA' ? 'SOL' : 'ETH',
-      amount: '5500000000',
-      amountFormatted: 5.5,
-      direction: 'IN',
-      decimals: 9,
-    };
-
-    const mockTokenTransferOut: RawTokenTransfer = {
-      tokenMint:
-        chainType === 'SOLANA'
-          ? 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-          : '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      symbol: 'USDC',
-      amount: '453250000',
-      amountFormatted: 453.25,
-      direction: 'OUT',
-      decimals: 6,
-    };
-
-    const transactions: RawTransaction[] = [
+    // Return a single snapshot transaction that acts as an "initial deposit" 
+    // to reflect the current on-chain balance in the portfolio view
+    return [
       {
-        signature: `mock_tx_1_${address.slice(0, 8)}_${now}`,
-        blockTime: now - 3600,
-        fee: 5000,
-        status: 'SUCCESS',
-        type: 'SWAP',
-        tokenTransfers: [mockTokenTransferIn, mockTokenTransferOut],
-      },
-      {
-        signature: `mock_tx_2_${address.slice(0, 8)}_${now - 1}`,
-        blockTime: now - 7200,
-        fee: 5000,
+        signature: `live_sync_${address.slice(0, 8)}_${now}`,
+        blockTime: now,
+        fee: 0,
         status: 'SUCCESS',
         type: 'TRANSFER',
         tokenTransfers: [
           {
-            ...mockTokenTransferIn,
+            tokenMint: mint,
+            symbol: symbol,
+            amount: '0', // Raw amount string not strictly needed for UI if we pass formatted
+            amountFormatted: nativeBalance,
             direction: 'IN',
-            amountFormatted: 1.0,
-            amount: '1000000000',
+            decimals: decimals,
           },
         ],
       },
     ];
-
-    return transactions;
   }
 }

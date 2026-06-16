@@ -11,7 +11,7 @@ import { USER_WALLET_SERVICE, ANALYTICS_SERVICE } from '@shared/index';
         transport: Transport.TCP,
         options: {
           host: process.env.USER_WALLET_SERVICE_HOST || 'localhost',
-          port: Number(process.env.USER_WALLET_SERVICE_PORT) || 3001,
+          port: Number(process.env.USER_WALLET_SERVICE_PORT) || 3006,
         },
       },
       {
@@ -19,7 +19,7 @@ import { USER_WALLET_SERVICE, ANALYTICS_SERVICE } from '@shared/index';
         transport: Transport.TCP,
         options: {
           host: process.env.ANALYTICS_SERVICE_HOST || 'localhost',
-          port: Number(process.env.ANALYTICS_SERVICE_PORT) || 3002,
+          port: Number(process.env.ANALYTICS_SERVICE_PORT) || 3007,
         },
       },
     ]),

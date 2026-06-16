@@ -26,11 +26,11 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: '0.0.0.0',
-      port: Number(process.env.ANALYTICS_SERVICE_PORT) || 3002,
+      port: Number(process.env.ANALYTICS_SERVICE_PORT) || 3007,
     },
   });
 
   await app.startAllMicroservices();
-  console.log('Analytics Service is running (RabbitMQ + TCP port 3002)');
+  console.log('Analytics Service is running (RabbitMQ + TCP port 3007)');
 }
 bootstrap();
