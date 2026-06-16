@@ -14,7 +14,7 @@ COPY package*.json ./
 COPY apps/user-wallet-service/prisma ./apps/user-wallet-service/prisma
 
 # Install ALL dependencies (including dev for building)
-RUN npm ci
+RUN npm install
 
 # Copy the rest of the monorepo source code
 COPY . .
@@ -35,7 +35,7 @@ ENV NODE_ENV=production
 
 # Copy only production dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Copy prisma schema to generate client for production
 COPY apps/user-wallet-service/prisma ./apps/user-wallet-service/prisma
