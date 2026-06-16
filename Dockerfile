@@ -39,6 +39,7 @@ RUN npm install --omit=dev
 
 # Copy prisma schema to generate client for production
 COPY apps/user-wallet-service/prisma ./apps/user-wallet-service/prisma
+COPY prisma.config.ts ./
 RUN npx prisma generate --schema=./apps/user-wallet-service/prisma/schema.prisma
 
 # Copy built artifacts from the builder stage
