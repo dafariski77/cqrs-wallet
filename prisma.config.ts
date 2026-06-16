@@ -1,8 +1,11 @@
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
   schema: 'apps/user-wallet-service/prisma/schema.prisma',
   datasource: {
-    url: env('DATABASE_URL'),
+    provider: 'postgresql',
+    url:
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:postgres@localhost:5432/wallet_db?schema=public',
   },
 });
